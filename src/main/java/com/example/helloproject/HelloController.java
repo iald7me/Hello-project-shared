@@ -60,19 +60,18 @@ import javafx.scene.layout.AnchorPane;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellReference;
 
 public class HelloController {
     public void initialize() {
-        ObservableList<Project> list = FXCollections.observableArrayList(
-                new Project(1,"SF-1", 2),
-                new Project(2,"SF-2", 5)
-        );
+        ObservableList<Project> list = FXCollections.observableArrayList();
         tableSerial.setCellValueFactory(new PropertyValueFactory<Project, Integer>("serial"));
         tableProjectId.setCellValueFactory(new PropertyValueFactory<Project, String>("id"));
         tableStage.setCellValueFactory(new PropertyValueFactory<Project, Integer>("stage"));
-        projectsTable.setItems(list);
 
 
         /////////////////////////////////////////////////////////////////////////
@@ -91,39 +90,48 @@ public class HelloController {
 //            System.out.println("Number of Rows "+ rows);
 
             for (Row row : xSheet) {
+                if(row.getRowNum()==0)
+                    continue;
+                ArrayList parameters = new ArrayList();
+                parameters.add(row.getRowNum());
                 for (Cell cell : row) {
+                    if (cell.getColumnIndex() == 0 || cell.getColumnIndex() > 2)
+                        continue;
                     CellReference cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex());
                     String text = formatter.formatCellValue(cell);
-                    System.out.println(cellRef.formatAsString() + " : <" + text + ">     " );
-                    switch (cell.getCellType()) {
-                        case STRING:
-                            System.out.println("STRING: " + cell.getRichStringCellValue().getString());
-                            break;
-                        case NUMERIC:
-                            if (DateUtil.isCellDateFormatted(cell)) {
-                                System.out.println("Formatted :" + cell.getDateCellValue());
-                            } else {
-                                System.out.println("UnFormatted :" + cell.getNumericCellValue());
-                            }
-                            break;
-                        case BOOLEAN:
-                            System.out.println(cell.getBooleanCellValue());
-                            break;
-                        case FORMULA:
-                            System.out.println("FORMULE :" + cell.getCellFormula());
-                            break;
-                        case BLANK:
-                            System.out.println("BLANK");
-                            break;
-                        default:
-                            System.out.println("Unknown");
-                    }
+//                    System.out.println(text);
+                    parameters.add(text);
+//                    switch (cell.getCellType()) {
+//                        case STRING:
+//                            System.out.println("STRING: " + cell.getRichStringCellValue().getString());
+//                            break;
+//                        case NUMERIC:
+//                            if (DateUtil.isCellDateFormatted(cell)) {
+//                                System.out.println("Formatted :" + cell.getDateCellValue());
+//                            } else {
+//                                System.out.println("UnFormatted :" + cell.getNumericCellValue());
+//                            }
+//                            break;
+//                        case BOOLEAN:
+//                            System.out.println(cell.getBooleanCellValue());
+//                            break;
+//                        case FORMULA:
+//                            System.out.println("FORMULE :" + cell.getCellFormula());
+//                            break;
+//                        case BLANK:
+//                            System.out.println("BLANK");
+//                            break;
+//                        default:
+//                            System.out.println("Unknown");
+//                    }
                 }
+                list.add(new Project(Integer.parseInt(parameters.get(0).toString()), parameters.get(1).toString(),Integer.parseInt(parameters.get(2).toString())));
             }
         } catch (IOException e) {
             // TODO: handle exception
             System.out.println(e.toString());
         }
+        projectsTable.setItems(list);
 
     }
     @FXML
