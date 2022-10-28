@@ -1,18 +1,3 @@
-package com.example.helloproject;
-
-import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.layout.AnchorPane;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellReference;
-
-public class HelloController {
-    public void initialize() {
 //        String baseDirectory = System.getProperty("user.dir");
 //        System.out.println(baseDirectory);
 //        String excelFilePath = baseDirectory + "\\Projects.xls"; // << put this file in your project directory
@@ -62,11 +47,39 @@ public class HelloController {
 //            // TODO: handle exception
 //            System.out.println(e.toString());
 //        }
+package com.example.helloproject;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.AnchorPane;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellReference;
+
+public class HelloController {
+    public void initialize() {
+        ObservableList<Project> list = FXCollections.observableArrayList(
+                new Project(1,"SF-1", 2),
+                new Project(2,"SF-2", 5)
+        );
+        tableSerial.setCellValueFactory(new PropertyValueFactory<Project, Integer>("serial"));
+        tableProjectId.setCellValueFactory(new PropertyValueFactory<Project, String>("id"));
+        tableStage.setCellValueFactory(new PropertyValueFactory<Project, Integer>("stage"));
+        projectsTable.setItems(list);
+
+
+        /////////////////////////////////////////////////////////////////////////
+
 
         String baseDirectory = System.getProperty("user.dir");
         String excelFilePath = baseDirectory + "\\Projects.xls"; // << put this file in your project directory
-//        System.out.println("Working Directory = " + baseDirectory);
-//        System.out.println("excelFilePath " + excelFilePath);
         try {
             FileInputStream inputStream = new FileInputStream(new File(excelFilePath));
             Workbook wb = WorkbookFactory.create(inputStream);
@@ -120,14 +133,14 @@ public class HelloController {
     private AnchorPane myAnchorPane;
 
     @FXML
-    private TableView<?> projectsTable;
+    private TableView<Project> projectsTable;
 
     @FXML
-    private TableColumn<?, ?> tableProjectId;
+    private TableColumn<Project, String> tableProjectId;
 
     @FXML
-    private TableColumn<?, ?> tableSerial;
+    private TableColumn<Project, Integer> tableSerial;
 
     @FXML
-    private TableColumn<?, ?> tableStage;
+    private TableColumn<Project, Integer> tableStage;
 }
