@@ -34,34 +34,40 @@ import static javafx.scene.paint.Color.RED;
 
 public class HelloController {
     public void initialize() {
+
         System.out.println("READING EXCEL SHEETS. PLEASE WAIT...");
         System.out.println("# NOTE: IGNORE WARNINGS AND 'StatusLogger' ERROR.");
-        ObservableList<Project> list = FXCollections.observableArrayList();
+
+        // Initinalizing a list of projects retrieved from the excel sheet
+        ObservableList<Project> projectList = FXCollections.observableArrayList();
+
+        // Setting the table labels for GUI
         tableSerial.setCellValueFactory(new PropertyValueFactory<Project, Integer>("serial"));
         tableProjectId.setCellValueFactory(new PropertyValueFactory<Project, String>("id"));
         tableStage.setCellValueFactory(new PropertyValueFactory<Project, Integer>("stage"));
 
-
-        /////////////////////////////////////////////////////////////////////////
-
-
+        // getting user's base directory to access the excel files.
         String baseDirectory = System.getProperty("user.dir");
-        String projectsExcelFilePath = baseDirectory + "\\Projects.xls"; // << put this file in your project directory
-        String stagesExcelFilePath = baseDirectory + "\\Stages.xls";
-        String dStagesExcelFilePath = baseDirectory + "\\Stages_Detailed.xls";
+        String projectsExcelFilePath = baseDirectory + "//Projects.xls";
+
         try {
+            //Opens the Project.xls file and loop thru its content
             FileInputStream inputStream = new FileInputStream(new File(projectsExcelFilePath));
             Workbook wb = WorkbookFactory.create(inputStream);
-
             Sheet xSheet = wb.getSheetAt(0);  // << gets the first sheet in the workbook
             DataFormatter formatter = new DataFormatter();
 
             for (Row row : xSheet) {
                 if(row.getRowNum()==0)
                     continue;
+
+                //Initializaion of ArrayLists
                 ArrayList parameters = new ArrayList();
-                parameters.add(row.getRowNum());
                 ArrayList<ProjectEvent> events = new ArrayList();
+
+                //Adds the serial number for each project
+                parameters.add(row.getRowNum());
+
                 for (Cell cell : row) {
                     if (cell.getColumnIndex() > 2)
                         continue;
@@ -69,62 +75,37 @@ public class HelloController {
                     if (cell.getColumnIndex() != 0)
                         parameters.add(text);
                     else {
-                        inputStream = new FileInputStream(new File(stagesExcelFilePath));
-                        wb = WorkbookFactory.create(inputStream);
 
-                        Sheet stagesSheet = wb.getSheetAt(0);  // << gets the first sheet in the workbook
-                        ArrayList<Integer> currentStages = new ArrayList();
-                        for (Row sRow : stagesSheet) {
-                            if (sRow.getRowNum() == 0)
-                                continue;
-                            String objId = sRow.getCell(0).getStringCellValue();
-                            if (objId.equals(text)) {
-                                int newStage = Integer.parseInt(formatter.formatCellValue(sRow.getCell(5)));
-                                currentStages.add(newStage);
-                            }
-                        }
-                        inputStream = new FileInputStream(new File(dStagesExcelFilePath));
-                        wb = WorkbookFactory.create(inputStream);
+                        // Opens Stages.xls file and get all the necessary information
+                        ReadStages stages = new ReadStages();
+                        ArrayList<Integer> currentStages = stages.getInfo(text);
 
-                        Sheet dStagesSheet = wb.getSheetAt(0);  // << gets the first sheet in the workbook
-                        ArrayList<LocalDateTime> currentStagesDates = new ArrayList();
-                        for (Row dRow : dStagesSheet) {
-                            if (dRow.getRowNum() == 0)
-                                continue;
-                            String objId = dRow.getCell(0).getStringCellValue();
-                            if (objId.equals(text)) {
-                                LocalDateTime newDate = dRow.getCell(2).getLocalDateTimeCellValue();
-
-                                // All of this code is because there are some data entry issues
-                                /////
-                                String timeIn12 = formatter.formatCellValue(dRow.getCell(3));
-                                if (timeIn12.length() == 10)
-                                    timeIn12 = "0" + timeIn12;
-                                DateTimeFormatter formatterInput = DateTimeFormatter.ofPattern("hh:mm:ss a" , Locale.US)  ;
-                                LocalTime inputTime = LocalTime.parse(timeIn12 , formatterInput);
-                                DateTimeFormatter formatterOutput = DateTimeFormatter.ofPattern("HH:mm:ss" ,Locale.US);
-                                String timeIn24 = inputTime.format(formatterOutput);
-                                int hourIn24 = Integer.parseInt(timeIn24.substring(0,2));
-                                int minute = Integer.parseInt(timeIn24.substring(3,5));
-                                int second = Integer.parseInt(timeIn24.substring(6,8));
-                                newDate = newDate.withHour(hourIn24).withMinute(minute).withSecond(second);
-                                currentStagesDates.add(newDate);
-                                /////
-                            }
-                        }
-                        for (int i = 0; i < currentStages.size(); i++) {
-                            events.add(new ProjectEvent(currentStagesDates.get(i), currentStages.get(i)));
-                        }
+                        // Opens Stages_Detailed.xls file and get all the necessary information
+                        ReadStagesDetails readStagesDetails = new ReadStagesDetails();
+                        events = readStagesDetails.getInfo(text,currentStages);
                     }
                 }
+                //Sorts all the events compared to their date
                 events.sort(Comparator.comparing(ProjectEvent::getDate));
-                list.add(new Project(Integer.parseInt(parameters.get(0).toString()), parameters.get(1).toString(),Integer.parseInt(parameters.get(2).toString()),events));
+
+                // At the end of loop, we create a new project object and append it to arraylist of projects
+                projectList.add(new Project(
+                        // Serial number
+                        Integer.parseInt(parameters.get(0).toString()),
+                        // Project ID
+                        parameters.get(1).toString(),
+                        // Stage Number
+                        Integer.parseInt(parameters.get(2).toString()),
+                        //an ArrayList of each project event detail
+                        events));
             }
             System.out.println("READING COMPLETE!");
+
         } catch (IOException e) {
             System.out.println(e.toString());
         }
-        projectsTable.setItems(list);
+
+        projectsTable.setItems(projectList);
 
     }
     @FXML
@@ -152,11 +133,19 @@ public class HelloController {
     void onClickProject(MouseEvent event) {
 
         anchorPaneTL.getChildren().clear();
+
+        // Storing the selected project
         Project selectedProject = projectsTable.getSelectionModel().getSelectedItem();
         labelProjectID.setText(selectedProject.getId());
+
+        //Gets all stages/events related to the selected project
         ArrayList<ProjectEvent> currentEvents = selectedProject.getEvents();
+
+        // getting the StartDate and EndDate from the selected project
         LocalDate timeLineStartDate = currentEvents.get(0).getDate().toLocalDate().with(firstDayOfMonth());
         LocalDate timeLineEndDate = currentEvents.get(currentEvents.size()-1).getDate().toLocalDate().with(lastDayOfMonth());
+
+
         int timelineDays = (int) DAYS.between(timeLineStartDate,timeLineEndDate) + 1;
         double incrementRatio = TIMELINE_LENGTH/timelineDays;
         Line mainLine = new Line(0,0,TIMELINE_LENGTH,0);
