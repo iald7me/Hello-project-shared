@@ -38,7 +38,7 @@ public class HelloController {
         System.out.println("READING EXCEL SHEETS. PLEASE WAIT...");
         System.out.println("# NOTE: IGNORE WARNINGS AND 'StatusLogger' ERROR!");
 
-        // Initinalizing a list of projects retrieved from the excel sheet
+        // Initializing a list of projects retrieved from the Excel sheet
         ObservableList<Project> projectList = FXCollections.observableArrayList();
 
         // Setting the table labels for GUI
@@ -61,7 +61,7 @@ public class HelloController {
                 if(row.getRowNum()==0)
                     continue;
 
-                //Initializaion of ArrayLists
+                //Initialization of ArrayLists
                 ArrayList parameters = new ArrayList();
                 ArrayList<ProjectEvent> events = new ArrayList();
 
@@ -128,6 +128,13 @@ public class HelloController {
 
     @FXML
     private TableColumn<Project, Integer> tableStage;
+
+    @FXML
+    private Label labelReworksAfter;
+
+    @FXML
+    private Label labelReworksBefore;
+
     private final double TIMELINE_LENGTH = 1335.0;
     @FXML
     void onClickProject(MouseEvent event) {
@@ -171,6 +178,7 @@ public class HelloController {
         anchorPaneTL.getChildren().add(durationLabel);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
         int oldStage = -1;
+        ProjectReworks projectReworks = new ProjectReworks();
         for (double i = 0; i <= TIMELINE_LENGTH + 0000000001; i += incrementRatio) {
             Line dayLine = new Line(0, -5, 0, 0);
             dayLine.setLayoutX(10 + i);
@@ -207,8 +215,11 @@ public class HelloController {
                         continue;
                     }
                     if (currentStage > oldStage)
-                        eventLabel.setTextFill(BLUE);
-                    else eventLabel.setTextFill(RED);
+                        TimelineIndicator.projectProgress(eventLabel);
+                    else {
+                        TimelineIndicator.projectRework(eventLabel);
+                        projectReworks.incrementReworks(currentStage);
+                    }
                     eventLabel.setLayoutY(cumulativeYLayout);
                     eventLabel.setLayoutX(i+7.8);
                     anchorPaneTL.getChildren().add(eventLabel);
@@ -233,5 +244,7 @@ public class HelloController {
             anchorPaneTL.getChildren().add(dayLine);
             timeLineStartDate = timeLineStartDate.plusDays(1);
         }
+        labelReworksBefore.setText(projectReworks.getReworksBeforeAward() + "");
+        labelReworksAfter.setText(projectReworks.getReworksAfterAward() + "");
     }
 }

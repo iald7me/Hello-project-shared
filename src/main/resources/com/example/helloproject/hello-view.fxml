@@ -34,5 +34,36 @@
             <Insets />
          </opaqueInsets>
       </AnchorPane>
+      <Label layoutX="1325.0" layoutY="18.0" text="Reworks:">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="labelReworksBefore" alignment="CENTER" contentDisplay="CENTER" layoutX="1238.0" layoutY="59.0" prefHeight="35.0" prefWidth="85.0" textAlignment="CENTER">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+         <opaqueInsets>
+            <Insets />
+         </opaqueInsets>
+      </Label>
+      <Label layoutX="1234.0" layoutY="93.0" text="Before award">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font>
+      </Label>
+      <Label layoutX="1399.0" layoutY="92.0" text="After award">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font>
+      </Label>
+      <Label fx:id="labelReworksAfter" alignment="CENTER" contentDisplay="CENTER" layoutX="1398.0" layoutY="57.0" prefHeight="35.0" prefWidth="85.0" textAlignment="CENTER">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+         <opaqueInsets>
+            <Insets />
+         </opaqueInsets>
+      </Label>
    </children>
 </AnchorPane>
