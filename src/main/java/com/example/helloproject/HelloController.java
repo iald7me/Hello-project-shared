@@ -36,7 +36,7 @@ public class HelloController {
     public void initialize() {
 
         System.out.println("READING EXCEL SHEETS. PLEASE WAIT...");
-        System.out.println("# NOTE: IGNORE WARNINGS AND 'StatusLogger' ERROR.");
+        System.out.println("# NOTE: IGNORE WARNINGS AND 'StatusLogger' ERROR!");
 
         // Initinalizing a list of projects retrieved from the excel sheet
         ObservableList<Project> projectList = FXCollections.observableArrayList();
